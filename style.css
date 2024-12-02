@@ -1,0 +1,9 @@
+body{
+    background-color: rgb(239, 239, 205);
+    font: black 12px;
+    font-family: Comic Sans MS;
+}
+h1{
+    font-size: 30px;
+    text-decoration: underline;
+}
