@@ -1,3 +1,8 @@
+canvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #eee;
+        }
 body{
     background-color: rgb(239, 239, 205);
     font: black 12px;
