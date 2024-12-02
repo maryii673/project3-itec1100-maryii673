@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game settings
+        const player = { x: 50, y: 50, size: 20, speed: 4 };
+        const enemies = [
+            { x: 200, y: 100, size: 20, dx: 2, dy: 2 },
+            { x: 300, y: 200, size: 20, dx: -2, dy: 2 },
+        ];
+        const items = [
+            { x: 150, y: 150, size: 10, collected: false },
+            { x: 250, y: 250, size: 10, collected: false },
+            { x: 350, y: 150, size: 10, collected: false },
+        ];
+        const endGoal = { x: 550, y: 350, size: 30 };
+        let keys = {};
+        let collectedItems = 0;
+        let gameOver = false;
+
+        // Listen for key events
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Draw the player
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+        }
+
+        // Draw enemies
+        function drawEnemies() {
+            ctx.fillStyle = 'red';
+            enemies.forEach(enemy => {
+                ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+            });
+        }
+
+        // Draw items
+        function drawItems() {
+            ctx.fillStyle = 'yellow';
+            items.forEach(item => {
+                if (!item.collected) {
+                    ctx.beginPath();
+                    ctx.arc(item.x, item.y, item.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Draw the end goal
+        function drawEndGoal() {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(endGoal.x, endGoal.y, endGoal.size, endGoal.size);
+        }
+
+        // Update player position
+        function updatePlayer() {
+            if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+            if (keys['ArrowDown'] && player.y + player.size < canvas.height) player.y += player.speed;
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x + player.size < canvas.width) player.x += player.speed;
+        }
+
+        // Update enemy positions
+        function updateEnemies() {
+            enemies.forEach(enemy => {
+                enemy.x += enemy.dx;
+                enemy.y += enemy.dy;
+
+                // Reverse direction if hitting walls
+                if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) enemy.dx *= -1;
+                if (enemy.y <= 0 || enemy.y + enemy.size >= canvas.height) enemy.dy *= -1;
+
+                // Check collision with player
+                if (isColliding(player, enemy)) gameOver = true;
+            });
+        }
+
+        // Check collision
+        function isColliding(a, b) {
+            return a.x < b.x + b.size &&
+                   a.x + a.size > b.x &&
+                   a.y < b.y + b.size &&
+                   a.y + a.size > b.y;
+        }
+
+        // Check if player collects items
+        function checkItems() {
+            items.forEach(item => {
+                if (!item.collected && isColliding(player, { x: item.x - item.size, y: item.y - item.size, size: item.size * 2 })) {
+                    item.collected = true;
+                    collectedItems++;
+                }
+            });
+        }
+
+        // Check if player reaches the end goal
+        function checkEndGoal() {
+            if (collectedItems === items.length && isColliding(player, endGoal)) {
+                alert('You win!');
+                resetGame();
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            player.x = 50;
+            player.y = 50;
+            collectedItems = 0;
+            items.forEach(item => item.collected = false);
+            gameOver = false;
+        }
+
+        // Main game loop
+        function gameLoop() {
+            if (gameOver) {
+                alert('Game Over!');
+                resetGame();
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                drawPlayer();
+                drawEnemies();
+                drawItems();
+                drawEndGoal();
+
+                updatePlayer();
+                updateEnemies();
+                checkItems();
+                checkEndGoal();
+
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+</html>
